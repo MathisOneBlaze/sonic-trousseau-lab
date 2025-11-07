@@ -1,0 +1,37 @@
+LISTE DES FICHIERS CRÉÉS/MODIFIÉS
+===================================
+
+BACKEND (nouveau dossier)
+-------------------------
+backend/package.json
+backend/.env.example
+backend/.gitignore
+backend/config/database.js
+backend/middleware/validation.js
+backend/middleware/rateLimiter.js
+backend/controllers/submissionController.js
+backend/routes/submissions.js
+backend/server.js
+backend/README.md
+
+FRONTEND (modifié)
+------------------
+src/services/FormSubmissionService.ts (MODIFIÉ - ancien sauvegardé en .ts.old)
+.env.example (MODIFIÉ - ajout VITE_API_URL)
+
+DOCUMENTATION
+-------------
+DEPLOYMENT-GUIDE.md (GUIDE PRINCIPAL - COMMENCER ICI)
+PLANNING.md
+TASK.md
+README-INTEGRATION.md
+rapport.md
+COMMENCER-ICI.md
+
+SCRIPTS
+-------
+deploy.sh (exécutable)
+
+PROCHAINE ÉTAPE
+===============
+Ouvrir et suivre : DEPLOYMENT-GUIDE.md

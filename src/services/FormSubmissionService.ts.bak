@@ -1,0 +1,137 @@
+// Form Submission Service - with MySQL integration
+
+import { generateUUID } from '@/lib/utils';
+import { Submission, SubmissionResult } from '@/types/submission';
+import mysql from 'mysql2/promise';
+import { MailerAdapter } from './adapters/mailer/MailerAdapter';
+import MailMock from './adapters/mailer/MailMock';
+
+// Configuration from environment variables
+const DB_CONFIG = {
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+};
+
+// Create a connection pool
+const pool = mysql.createPool(DB_CONFIG);
+
+// Initialize mailer
+const MAILER_PROVIDER = process.env.MAILER_PROVIDER || 'mock';
+const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL || 'admin@letrousseau.com';
+const mailerAdapter = new MailMock(); // Using mock for now, can be replaced with real mailer
+
+class FormSubmissionService {
+  /**
+   * Save submission to MySQL database
+   */
+  private async saveToDatabase(submission: any): Promise<{ success: boolean; error?: string }> {
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      
+      const [result] = await connection.execute(
+        `INSERT INTO form_submissions 
+         (id, name, email, phone, subject, message, newsletter, consent) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          submission.id,
+          submission.name,
+          submission.email,
+          submission.phone || null,
+          submission.subject || null,
+          submission.message || null,
+          submission.newsletter || false,
+          submission.consent
+        ]
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('[FormSubmissionService] Database error:', error);
+      return { 
+        success: false, 
+        error: 'Failed to save submission to database' 
+      };
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  /**
+   * Submit a form - validates, stores in MySQL, and sends notification
+   */
+  async submitForm(data: any): Promise<SubmissionResult> {
+    // Generate ID and timestamp
+    const submission = {
+      ...data,
+      id: generateUUID(),
+      timestamp: new Date().toISOString(),
+    };
+
+    // Validate consent
+    if (!submission.consent) {
+      return {
+        success: false,
+        error: 'Le consentement RGPD est obligatoire'
+      };
+    }
+
+    try {
+      // Save to database
+      const saveResult = await this.saveToDatabase(submission);
+      if (!saveResult.success) {
+        return saveResult;
+      }
+
+      // Send notification email (non-blocking)
+      mailerAdapter.sendNotification(submission, NOTIFICATION_EMAIL)
+        .catch(err => console.error('[FormSubmissionService] Email notification failed:', err));
+
+      return { success: true };
+    } catch (error) {
+      console.error('[FormSubmissionService] Submission failed:', error);
+      return {
+        success: false,
+        error: 'Une erreur est survenue lors de la soumission'
+      };
+    }
+  }
+
+  /**
+   * Get all submissions (for admin)
+   */
+  async getSubmissions(): Promise<any[]> {
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const [rows] = await connection.query('SELECT * FROM form_submissions ORDER BY created_at DESC');
+      return rows as any[];
+    } catch (error) {
+      console.error('[FormSubmissionService] Failed to fetch submissions:', error);
+      return [];
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  /**
+   * Get service status
+   */
+  getStatus() {
+    return {
+      database: 'MySQL',
+      mailer: mailerAdapter.getProvider(),
+      ready: true
+    };
+  }
+}
+
+// Singleton instance
+const formSubmissionService = new FormSubmissionService();
+export default formSubmissionService;

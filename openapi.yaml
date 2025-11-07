@@ -1,0 +1,364 @@
+openapi: 3.0.0
+info:
+  title: Le Trousseau - Form Submission API
+  description: |
+    API for handling all form submissions (contact, newsletter, quiz, booking).
+    
+    **Current Status**: Mock mode (no real persistence)
+    
+    **Future**: Will be migrated to Hostinger MySQL + SMTP
+  version: 1.0.0
+  contact:
+    name: Le Trousseau Support
+    email: admin@letrousseau.com
+
+servers:
+  - url: https://letrousseau.com/api
+    description: Production (mock mode)
+  - url: http://localhost:5173/api
+    description: Development (mock mode)
+
+tags:
+  - name: Submissions
+    description: Form submission endpoints
+  - name: Admin
+    description: Admin-only endpoints (protected)
+
+paths:
+  /form-submit:
+    post:
+      tags:
+        - Submissions
+      summary: Submit a form
+      description: |
+        Submit any type of form (contact, newsletter, quiz, booking).
+        
+        - Validates consent and schema
+        - Stores submission (currently mock, volatile)
+        - Sends notification email (currently mock, simulated)
+      operationId: submitForm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/ContactSubmission'
+                - $ref: '#/components/schemas/NewsletterSubmission'
+                - $ref: '#/components/schemas/QuizSubmission'
+                - $ref: '#/components/schemas/BookingSubmission'
+            examples:
+              contact:
+                summary: Contact form
+                value:
+                  source: contact
+                  consent: true
+                  name: Jean Dupont
+                  email: jean@example.com
+                  phone: "+33612345678"
+                  subject: Demande d'information
+                  message: Bonjour, je souhaiterais plus d'informations...
+                  newsletter: true
+              newsletter:
+                summary: Newsletter subscription
+                value:
+                  source: newsletter
+                  consent: true
+                  name: Marie Martin
+                  email: marie@example.com
+              quiz:
+                summary: Quiz results
+                value:
+                  source: quiz
+                  consent: true
+                  userInfo:
+                    name: Paul Durand
+                    pseudonym: PaulArtiste
+                    email: paul@example.com
+                    phone: "+33612345678"
+                    age: "28"
+                    location: "Paris, France"
+                  answers:
+                    - questionId: 1
+                      answer: "Oui"
+                      value: 8
+                    - questionId: 2
+                      answer: "Tous les jours"
+                      value: 8
+                  results:
+                    score: 75
+                    archetype: "Conquérant"
+                    stats:
+                      discipline: 80
+                      creation: 75
+                      interpretation: 70
+                      organisation: 75
+                    insights:
+                      - "Tu as une excellente discipline"
+                      - "Continue sur cette voie"
+                      - "Explore plus la création"
+                    recommendedOffer: "Programme Le Trousseau"
+      responses:
+        '200':
+          description: Submission successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResult'
+              examples:
+                success:
+                  value:
+                    success: true
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    mock: true
+        '400':
+          description: Invalid request (missing consent or validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResult'
+              examples:
+                no_consent:
+                  value:
+                    success: false
+                    error: "Le consentement RGPD est obligatoire"
+                invalid_schema:
+                  value:
+                    success: false
+                    error: "Invalid submission schema"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResult'
+              examples:
+                error:
+                  value:
+                    success: false
+                    error: "Une erreur est survenue lors de la soumission"
+
+  /admin/export-csv:
+    get:
+      tags:
+        - Admin
+      summary: Export submissions (admin only)
+      description: |
+        Export all submissions as JSON or CSV.
+        
+        **Protected**: Requires `Authorization: Bearer <ADMIN_EXPORT_TOKEN>`
+      operationId: exportSubmissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2025-01-01"
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2025-12-31"
+        - name: source
+          in: query
+          schema:
+            type: string
+            enum: [contact, newsletter, quiz, booking]
+      responses:
+        '200':
+          description: Export successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+            text/csv:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized (invalid or missing token)
+        '500':
+          description: Export failed
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Admin export token from .env (VITE_ADMIN_EXPORT_TOKEN)
+
+  schemas:
+    BaseSubmission:
+      type: object
+      required:
+        - source
+        - consent
+      properties:
+        source:
+          type: string
+          enum: [contact, newsletter, quiz, booking]
+        consent:
+          type: boolean
+          description: RGPD consent flag (must be true)
+
+    ContactSubmission:
+      allOf:
+        - $ref: '#/components/schemas/BaseSubmission'
+        - type: object
+          required:
+            - name
+            - email
+            - message
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            email:
+              type: string
+              format: email
+              maxLength: 255
+            phone:
+              type: string
+              maxLength: 50
+            subject:
+              type: string
+              maxLength: 500
+            message:
+              type: string
+              maxLength: 5000
+            newsletter:
+              type: boolean
+              default: false
+
+    NewsletterSubmission:
+      allOf:
+        - $ref: '#/components/schemas/BaseSubmission'
+        - type: object
+          required:
+            - name
+            - email
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            email:
+              type: string
+              format: email
+              maxLength: 255
+
+    QuizSubmission:
+      allOf:
+        - $ref: '#/components/schemas/BaseSubmission'
+        - type: object
+          required:
+            - userInfo
+            - answers
+            - results
+          properties:
+            userInfo:
+              type: object
+              properties:
+                name:
+                  type: string
+                pseudonym:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                age:
+                  type: string
+                location:
+                  type: string
+            answers:
+              type: array
+              items:
+                type: object
+                properties:
+                  questionId:
+                    type: integer
+                  answer:
+                    oneOf:
+                      - type: string
+                      - type: number
+                  value:
+                    type: number
+            results:
+              type: object
+              properties:
+                score:
+                  type: number
+                archetype:
+                  type: string
+                stats:
+                  type: object
+                  additionalProperties:
+                    type: number
+                insights:
+                  type: array
+                  items:
+                    type: string
+                recommendedOffer:
+                  type: string
+
+    BookingSubmission:
+      allOf:
+        - $ref: '#/components/schemas/BaseSubmission'
+        - type: object
+          required:
+            - name
+            - email
+            - phone
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            formula:
+              type: string
+            participants:
+              type: string
+            location:
+              type: string
+            equipment:
+              type: array
+              items:
+                type: string
+            message:
+              type: string
+
+    Submission:
+      oneOf:
+        - $ref: '#/components/schemas/ContactSubmission'
+        - $ref: '#/components/schemas/NewsletterSubmission'
+        - $ref: '#/components/schemas/QuizSubmission'
+        - $ref: '#/components/schemas/BookingSubmission'
+
+    SubmissionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        error:
+          type: string
+        mock:
+          type: boolean
+          description: True if using mock adapters (no real persistence)
