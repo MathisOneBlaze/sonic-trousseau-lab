@@ -34,3 +34,9 @@ dist/
 # Backup files
 *.old
 *.backup.*
+# Env & keys
+.env
+*.env
+*/.env*
+*.key
+*.pem
