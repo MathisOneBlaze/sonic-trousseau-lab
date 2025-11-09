@@ -1,73 +1,52 @@
-# Welcome to your Lovable project
+# Le Trousseau – sonic-trousseau-lab
 
-## Project info
+Site marketing + Dashboard d’automatisation (YouTube → Social).
 
-**URL**: https://lovable.dev/projects/e193f997-24e3-472b-9bc3-ed7b18d67584
+## Périmètre
 
-## How can I edit this code?
+- Frontend: Vite + React + TypeScript + Tailwind + shadcn/ui
+- Backend: Node/Express + MySQL + PM2 (API sur port 3001)
+- Monitoring Admin: page statique servie par l’API (Nginx proxy) avec vue détaillée des jobs
 
-There are several ways of editing your application.
+## Dashboard Admin
 
-**Use Lovable**
+- URL: https://admin.asso-letrousseau.com/dashboard
+- Accès: protégé (mot de passe requis). Ne pas committer de secrets dans le repo.
+- Fonctionnalités:
+  - Liste des jobs avec icônes d’étapes + barre de progression
+  - Modal détail (timeline, durées, métadonnées)
+  - Toggle d’activation de l’automation (via API)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e193f997-24e3-472b-9bc3-ed7b18d67584) and start prompting.
+Docs associées:
+- SETUP-ADMIN-DASHBOARD.md (mise en place Nginx/SSL/Proxy)
+- ADMIN-DASHBOARD-COMPLETE.md (récapitulatif complet)
+- TRIGGERS-YOUTUBE.md (règles de détection YouTube)
 
-Changes made via Lovable will be committed automatically to this repo.
+## Développement local
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Backend API (dossier backend/):
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+cd backend
+npm install
+npm run start:dev
+```
 
-**Use GitHub Codespaces**
+## Déploiement (résumé)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- VPS: 168.231.85.181
+- Nginx reverse proxy vers API (3001) + dashboard `/dashboard`
+- PM2 process: `letrousseau-api`
 
-## What technologies are used for this project?
+Consulter SETUP-ADMIN-DASHBOARD.md pour la procédure complète (Nginx + Certbot + sécurité).
 
-This project is built with:
+## Sécurité
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- CSP configurée (helmet) pour le dashboard
+- Accès admin protégé (éviter d’exposer les secrets dans le README)
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/e193f997-24e3-472b-9bc3-ed7b18d67584) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
