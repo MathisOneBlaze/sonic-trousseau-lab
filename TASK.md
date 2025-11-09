@@ -1,5 +1,9 @@
 # Tâches - Le Trousseau
 
+## ✅ Complétées (2025-11-09)
+
+- [x] Remplacer le logo (src/assets et public) et déployer le frontend sur le VPS
+
 ## ✅ Complétées (2025-01-07)
 
 ### Backend API
@@ -146,3 +150,112 @@ Aucun pour le moment.
 - Webhook pour notifier d'autres services
 - API publique pour les partenaires
 - Application mobile pour l'admin
+
+## 🤖 En cours - Automatisation IA (2025-01-08)
+
+### Système d'automatisation multi-plateforme
+**Description** : Service backend autonome qui détecte les nouvelles vidéos YouTube et automatise la publication multi-plateforme avec génération de contenu via LLM.
+
+**Workflow** :
+1. Détection nouvelle vidéo YouTube (webhook ou polling)
+2. Extraction métadonnées (titre, description, tags, miniature)
+3. Génération contenus adaptés par plateforme via LLM (GPT-4/Claude)
+4. Publication automatique sur site web, Twitter, Instagram, newsletter
+5. Logs et monitoring des publications
+
+**Extensions futures** :
+- Déclencheur Instagram → Twitter + Stories
+- Génération d'images avec modèles personnalisés
+- Templates de stories avec brand identity
+
+### Tâches - Phase 1 : MVP (✅ Complété)
+- [x] Créer service d'automatisation (`backend/automation/`)
+- [x] Implémenter module YouTube (webhook + polling fallback)
+- [x] Implémenter module LLM (OpenAI/Anthropic)
+- [x] Créer templates de prompts par plateforme
+- [x] Implémenter module Twitter API v2
+- [x] Implémenter module Instagram Graph API
+- [x] Implémenter module Newsletter (Mailchimp/Brevo)
+- [x] Créer endpoint API `/api/videos` pour le site
+- [x] Créer tables MySQL `videos` et `automation_logs`
+- [x] Créer documentation AUTOMATION.md
+- [x] Configurer variables d'environnement
+
+### Tâches - Phase 2 : Workflow avancé (En cours)
+**Objectif** : Workflow complet avec transcription, clippage, génération d'images, threads Twitter intelligents
+
+#### 2.1 Transcription & Analyse
+- [ ] Service de transcription vidéo YouTube
+  - Option 1 : YouTube Transcript API (gratuit, si disponible)
+  - Option 2 : Whisper API OpenAI (précis, payant)
+  - Option 3 : AssemblyAI (alternative)
+- [ ] Service de résumé intelligent (LLM analyse transcription)
+- [ ] Détection automatique des moments clés (timestamps)
+
+#### 2.2 Clippage Vidéo
+- [ ] Service de téléchargement vidéo YouTube (yt-dlp)
+- [ ] Service de clippage FFmpeg
+  - Extraction de segments 10-60 secondes
+  - Identification automatique des moments clés via LLM
+  - Export formats optimisés (vertical pour stories, carré pour Instagram)
+- [ ] Service de compression et optimisation
+- [ ] Stockage temporaire des clips (S3/local)
+
+#### 2.3 Génération & Extraction Visuels
+- [ ] Service de screenshot vidéo (FFmpeg)
+  - Extraction frames clés
+  - Miniatures optimisées
+- [ ] Service de génération d'images IA
+  - DALL-E 3 (OpenAI)
+  - Stable Diffusion XL (alternative)
+  - Midjourney API (si disponible)
+- [ ] Templates de stories personnalisables
+  - Brand identity (couleurs, fonts, logo)
+  - Layouts adaptatifs
+
+#### 2.4 Twitter Avancé
+- [ ] Système de threads Twitter intelligents
+  - Longueur adaptative selon contenu
+  - Analyse du ton du compte existant
+  - Lien YouTube dans le dernier tweet
+- [ ] Service de gestion du thread épinglé
+  - Récupération du thread épinglé actuel
+  - Ajout du nouveau premier tweet
+  - Mise à jour automatique
+- [ ] Analyse de performance des threads passés
+
+#### 2.5 Placements Multi-plateformes Étendus
+- [ ] API TikTok
+  - Publication de clips courts
+  - Génération de captions avec hashtags
+- [ ] API Snapchat
+  - Stories via Snap Publisher API
+  - Format vertical optimisé
+- [ ] Instagram avancé
+  - Carrousels avec miniature + screenshots + clips
+  - Reels (clips courts)
+  - Stories multiples
+
+#### 2.6 Planification & Orchestration
+- [ ] Planificateur de diffusion des clips
+  - Calendrier de publication étalé
+  - Heures optimales par plateforme
+  - Éviter le spam
+- [ ] Orchestrateur de workflow complexe
+  - Gestion des dépendances entre tâches
+  - Retry logic pour chaque étape
+  - Rollback en cas d'échec partiel
+- [ ] Dashboard de monitoring temps réel
+
+#### 2.7 Infrastructure
+- [ ] Queue de jobs robuste (Bull/BullMQ avec Redis)
+- [ ] Stockage fichiers (S3 ou équivalent)
+- [ ] CDN pour servir clips et images
+- [ ] Webhook endpoints sécurisés
+- [ ] Tests E2E complets
+
+### Prochaines étapes immédiates
+1. Créer service de transcription
+2. Créer service de clippage FFmpeg
+3. Mettre à jour Twitter pour threads intelligents
+4. Ajouter TikTok et Snapchat APIs

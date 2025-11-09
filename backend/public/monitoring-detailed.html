@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Trousseau - Monitoring Automatisation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafafa;
+            color: #2c3e50;
+            padding: 16px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #3498db;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 4px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        /* Toggle Switch for Automation */
+        .automation-control {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .automation-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+        }
+
+        .status-indicator.active {
+            background: #27ae60;
+            box-shadow: 0 0 12px rgba(39, 174, 96, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.inactive {
+            background: #e74c3c;
+            box-shadow: 0 0 12px rgba(231, 76, 60, 0.6);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .status-text {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .status-text.active {
+            color: #27ae60;
+        }
+
+        .status-text.inactive {
+            color: #e74c3c;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #27ae60;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-right: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 3px solid #3498db;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .stat-subtext {
+            font-size: 0.8em;
+            color: #95a5a6;
+            margin-top: 4px;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-bottom: 16px;
+            color: #2c3e50;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            text-align: left;
+            color: #2c3e50;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 32px;
+            color: #7f8c8d;
+        }
+
+        .platform-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 2px;
+            background: #e3f2fd;
+            border-radius: 4px;
+            font-size: 0.75em;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .refresh-info {
+            text-align: right;
+            color: #95a5a6;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border-left: 3px solid #f5c6cb;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading-dot {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Le Trousseau - Monitoring Automatisation</h1>
+            <p class="subtitle">Suivi en temps réel des jobs d'automatisation multi-plateforme</p>
+        </header>
+
+        <!-- Automation Control Toggle -->
+        <div class="automation-control">
+            <div class="automation-status">
+                <div class="status-indicator" id="status-indicator"></div>
+                <div>
+                    <div class="status-text" id="status-text">Chargement...</div>
+                    <div class="toggle-label" id="status-details">Vérification du statut...</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="toggle-label">Activer/Désactiver l'automation</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="automation-toggle" onchange="toggleAutomation()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div id="error-container"></div>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Jobs</div>
+                <div class="stat-value loading-dot">...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Taux de Succès</div>
+                <div class="stat-value loading-dot">...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Durée Moyenne</div>
+                <div class="stat-value loading-dot">...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Vidéos Publiées</div>
+                <div class="stat-value loading-dot">...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>📊 Jobs Récents</h2>
+                <button class="btn" onclick="refreshData()">🔄 Actualiser</button>
+            </div>
+            <div class="refresh-info" id="last-update">Chargement...</div>
+            <div id="jobs-container" class="loading">
+                <p>Chargement des jobs...</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎥 Dernières Vidéos Publiées</h2>
+            <div id="videos-container" class="loading">
+                <p>Chargement des vidéos...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+
+        // Automation Control Functions
+        async function fetchAutomationStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/monitoring/automation/status`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateAutomationUI(data.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch automation status:', error);
+            }
+        }
+
+        function updateAutomationUI(status) {
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            const statusDetails = document.getElementById('status-details');
+            const toggle = document.getElementById('automation-toggle');
+            
+            if (status.enabled) {
+                indicator.className = 'status-indicator active';
+                statusText.className = 'status-text active';
+                statusText.textContent = 'Automation ACTIVE';
+                statusDetails.textContent = `Mode: ${status.dryRun ? 'DRY RUN (simulation)' : 'PRODUCTION'} • Vérification: ${status.schedule}`;
+                toggle.checked = true;
+            } else {
+                indicator.className = 'status-indicator inactive';
+                statusText.className = 'status-text inactive';
+                statusText.textContent = 'Automation INACTIVE';
+                statusDetails.textContent = 'L\'automation est actuellement désactivée';
+                toggle.checked = false;
+            }
+        }
+
+        async function toggleAutomation() {
+            const toggle = document.getElementById('automation-toggle');
+            const enabled = toggle.checked;
+            
+            try {
+                const response = await fetch(`${API_BASE}/monitoring/automation/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ enabled })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateAutomationUI(data.data);
+                    showSuccess(enabled ? 'Automation activée !' : 'Automation désactivée');
+                } else {
+                    showError('Erreur: ' + data.message);
+                    // Revert toggle
+                    toggle.checked = !enabled;
+                }
+            } catch (error) {
+                showError('Impossible de changer le statut: ' + error.message);
+                // Revert toggle
+                toggle.checked = !enabled;
+            }
+        }
+
+        function showSuccess(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `
+                <div style="background: #d4edda; color: #155724; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid #c3e6cb;">
+                    ✅ ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        async function fetchDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/monitoring/dashboard`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStats(data.data);
+                } else {
+                    showError('Erreur lors du chargement des statistiques');
+                }
+            } catch (error) {
+                showError('Impossible de contacter le serveur: ' + error.message);
+            }
+        }
+
+        async function fetchJobs() {
+            try {
+                const response = await fetch(`${API_BASE}/monitoring/jobs?limit=15`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayJobs(data.data.jobs);
+                    updateLastUpdate();
+                } else {
+                    showError('Erreur lors du chargement des jobs');
+                }
+            } catch (error) {
+                showError('Impossible de charger les jobs: ' + error.message);
+            }
+        }
+
+        async function fetchVideos() {
+            try {
+                const response = await fetch(`${API_BASE}/monitoring/videos?limit=5`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayVideos(data.data);
+                } else {
+                    showError('Erreur lors du chargement des vidéos');
+                }
+            } catch (error) {
+                showError('Impossible de charger les vidéos: ' + error.message);
+            }
+        }
+
+        function updateStats(stats) {
+            const statsCards = document.querySelectorAll('.stat-card');
+            
+            // Total Jobs
+            statsCards[0].querySelector('.stat-value').textContent = stats.totalJobs;
+            
+            // Success Rate
+            statsCards[1].querySelector('.stat-value').textContent = stats.successRate + '%';
+            
+            // Average Duration
+            const avgMinutes = Math.round(stats.avgDuration / 1000 / 60);
+            statsCards[2].querySelector('.stat-value').textContent = avgMinutes;
+            statsCards[2].querySelector('.stat-subtext').textContent = 'minutes';
+            
+            // Total Videos
+            statsCards[3].querySelector('.stat-value').textContent = stats.totalVideos;
+        }
+
+        function displayJobs(jobs) {
+            const container = document.getElementById('jobs-container');
+            
+            if (jobs.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Aucun job trouvé</p>';
+                return;
+            }
+
+            const table = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Vidéo</th>
+                            <th>Status</th>
+                            <th>Durée</th>
+                            <th>Plateformes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${jobs.map(job => `
+                            <tr>
+                                <td>${new Date(job.started_at).toLocaleString('fr-FR')}</td>
+                                <td>${job.video_title || 'Sans titre'}</td>
+                                <td><span class="status status-${job.status}">${job.status}</span></td>
+                                <td>${job.duration_ms ? Math.round(job.duration_ms / 1000) + 's' : '-'}</td>
+                                <td>${formatPlatforms(job.platforms_enabled)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = table;
+        }
+
+        function displayVideos(videos) {
+            const container = document.getElementById('videos-container');
+            
+            if (videos.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Aucune vidéo trouvée</p>';
+                return;
+            }
+
+            const table = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Titre</th>
+                            <th>YouTube ID</th>
+                            <th>Vues</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${videos.map(video => `
+                            <tr>
+                                <td>${new Date(video.published_at).toLocaleDateString('fr-FR')}</td>
+                                <td>${video.title}</td>
+                                <td><a href="https://www.youtube.com/watch?v=${video.youtube_id}" target="_blank" style="color: #667eea;">${video.youtube_id}</a></td>
+                                <td>${video.view_count || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = table;
+        }
+
+        function formatPlatforms(platforms) {
+            if (!platforms || platforms.length === 0) return '-';
+            return platforms.map(p => `<span class="platform-tag">${p}</span>`).join('');
+        }
+
+        function updateLastUpdate() {
+            document.getElementById('last-update').textContent = 
+                'Dernière mise à jour : ' + new Date().toLocaleTimeString('fr-FR');
+        }
+
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function refreshData() {
+            fetchAutomationStatus();
+            fetchDashboard();
+            fetchJobs();
+            fetchVideos();
+        }
+
+        // Initial load
+        refreshData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>
